@@ -22,8 +22,12 @@ class LocationService {
 
     if (!serviceEnabled) {
       serviceEnabled = await _location.requestService();
-      
-      if (!serviceEnabled) throw Exception("location Service is disabled");
+    }
+
+    if (!serviceEnabled) {
+      throw Exception(
+        'กรุณาเปิดบริการตำแหน่งในการตั้งค่าอุปกรณ์ แล้วลองใหม่',
+      );
     }
 
     permissionGranted = await _location.hasPermission();
@@ -31,13 +35,29 @@ class LocationService {
     if (permissionGranted == PermissionStatus.denied) {
       permissionGranted = await _location.requestPermission();
     }
-    
-    if (permissionGranted != PermissionStatus.granted && permissionGranted != PermissionStatus.grantedLimited) throw Exception("Location permission denied");
-    
-    final data = await _location.getLocation();
-    
-    if (data.latitude == null || data.longitude == null) throw Exception("Unable to get location");
-    
+
+    if (permissionGranted == PermissionStatus.deniedForever) {
+      throw Exception('สิทธิ์ตำแหน่งถูกปฏิเสธถาวร กรุณาอนุญาตในการตั้งค่าแอป แล้วลองใหม่');
+    }
+
+    if (permissionGranted != PermissionStatus.granted && permissionGranted != PermissionStatus.grantedLimited) {
+      throw Exception('ไม่ได้รับอนุญาตให้เข้าถึงตำแหน่ง กรุณาอนุญาตสิทธิ์แล้วลองใหม่');
+    }
+
+    final data = await _location.getLocation().timeout(
+      const Duration(seconds: 30),
+      onTimeout: () => throw Exception(
+        'อ่านตำแหน่งไม่สำเร็จภายในเวลาที่กำหนด กรุณาลองใหม่',
+      ),
+    );
+
+    final latitude = data.latitude;
+    final longitude = data.longitude;
+
+    if (latitude == null || longitude == null) {
+      throw Exception('ไม่พบข้อมูลพิกัด กรุณาลองใหม่');
+    }
+
     return LocationResult(latitude: data.latitude, longitude: data.longitude, updateAt: DateTime.now());
   }
 }
