@@ -17,12 +17,7 @@ class _HomePageState extends State<HomePage> {
   bool _isLoading = false;
   String? _errorMessage;
   Future<void> _loadLocation() async {
-    // 1. setState ให้ _isLoading = true และล้าง _errorMessage
-    // 2. เรียก await _locationService.getCurrentLocation()
-    // 3. ตรวจสอบ mounted ก่อน setState
-    // 4. เก็บผลลัพธ์ใน _locationResult
-    // 5. จัดการ Error ด้วย try-catch
-    // 6. ใน finally ให้กำหนด _isLoading = false
+
     if (_isLoading) return;
 
     setState(() {
